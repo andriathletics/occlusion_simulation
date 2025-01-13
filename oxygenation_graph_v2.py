@@ -4,29 +4,42 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Function to calculate peak oxygenation (StO2_peak)
-def calculate_peak_oxygenation(macrovasc_contribution, adipose_contribution, skin_contribution, myoglobin_min_contribution, myoglobin_max_contribution, arterioles_contribution, venules_contribution):
-    muscle_contribution = 100 - (adipose_contribution + skin_contribution)  # Remaining contribution for muscle layer
+def calculate_peak_oxygenation(skin_contribution, adipose_contribution, macrovasc_contribution, arterioles_contribution, venules_contribution, capillary_contribution, myoglobin_ratio):
+    # Tissue layer contributions
+    muscle_contribution = 100 - (skin_contribution + adipose_contribution)  # Remaining contribution for muscle layer
 
-    adipose_oxygenation = 70  # Adipose oxygenation is always 70%
-    skin_oxygenation_peak = 80  # Skin peak oxygenation is 80%
-
-    macro_arterial_oxygenation = 100
-    macro_venous_oxygenation = 70
-    myoglobin_oxygenation = 100
+    # Oxygenation levels
+    adipose_oxygenation = 70
+    skin_oxygenation_peak = 80
+    macro_arterial_oxygenation = 98
+    macro_venous_oxygenation = 60
     arterioles_oxygenation = 95
     venules_oxygenation = 70
-    myoglobin_contribution = np.interp(100, [0, 100], [myoglobin_min_contribution, myoglobin_max_contribution])
+    capillaries_oxygenation = 75
+    myoglobin_oxygenation = 95
 
+    # Normalize microcirculation components to ensure total = 100%
+    total_micro_circulation = arterioles_contribution + venules_contribution + capillary_contribution
+    if total_micro_circulation != 100:
+        scale_factor = 100 / total_micro_circulation
+        arterioles_contribution *= scale_factor
+        venules_contribution *= scale_factor
+        capillary_contribution *= scale_factor
+
+    # Split capillary contribution into capillaries and myoglobin
+    capillary_myoglobin_contribution = capillary_contribution * (myoglobin_ratio / 100)
+    capillaries_only_contribution = capillary_contribution * (1 - myoglobin_ratio / 100)
+
+    # Signals from each component
     macrovasc_signal = (macrovasc_contribution / 100) * ((macro_arterial_oxygenation + macro_venous_oxygenation) / 2)
-    myoglobin_signal = (myoglobin_contribution / 100) * myoglobin_oxygenation
     arterioles_signal = (arterioles_contribution / 100) * arterioles_oxygenation
     venules_signal = (venules_contribution / 100) * venules_oxygenation
-    capillaries_contribution = 100 - (myoglobin_contribution + arterioles_contribution + venules_contribution)
-    capillaries_signal = (capillaries_contribution / 100) * venules_oxygenation
+    capillary_signal = (capillaries_only_contribution / 100) * capillaries_oxygenation
+    myoglobin_signal = (capillary_myoglobin_contribution / 100) * myoglobin_oxygenation
 
-    muscle_signal = macrovasc_signal + myoglobin_signal + arterioles_signal + venules_signal + capillaries_signal
+    muscle_signal = macrovasc_signal + arterioles_signal + venules_signal + capillary_signal + myoglobin_signal
 
-    # Adding skin and adipose contributions
+    # Add skin and adipose contributions
     skin_signal = (skin_contribution / 100) * skin_oxygenation_peak
     adipose_signal = (adipose_contribution / 100) * adipose_oxygenation
 
@@ -34,29 +47,42 @@ def calculate_peak_oxygenation(macrovasc_contribution, adipose_contribution, ski
     return min(total_signal, 100)
 
 # Function to calculate minimum oxygenation (StO2_min)
-def calculate_min_oxygenation(macrovasc_contribution, adipose_contribution, skin_contribution, myoglobin_min_contribution, myoglobin_max_contribution, arterioles_contribution, venules_contribution):
-    muscle_contribution = 100 - (adipose_contribution + skin_contribution)  # Remaining contribution for muscle layer
+def calculate_min_oxygenation(skin_contribution, adipose_contribution, macrovasc_contribution, arterioles_contribution, venules_contribution, capillary_contribution, myoglobin_ratio):
+    # Tissue layer contributions
+    muscle_contribution = 100 - (skin_contribution + adipose_contribution)  # Remaining contribution for muscle layer
 
-    adipose_oxygenation = 70  # Adipose oxygenation is always 70%
-    skin_oxygenation_min = 10  # Skin minimum oxygenation is 10%
-
-    macro_arterial_oxygenation = 100
+    # Oxygenation levels
+    adipose_oxygenation = 70
+    skin_oxygenation_min = 10
+    macro_arterial_oxygenation = 98
     macro_venous_oxygenation = 25
+    arterioles_oxygenation = 50
+    venules_oxygenation = 5
+    capillaries_oxygenation = 10
     myoglobin_oxygenation = 0
-    arterioles_oxygenation = 100
-    venules_oxygenation = 25
-    myoglobin_contribution = np.interp(0, [0, 100], [myoglobin_min_contribution, myoglobin_max_contribution])
 
+    # Normalize microcirculation components to ensure total = 100%
+    total_micro_circulation = arterioles_contribution + venules_contribution + capillary_contribution
+    if total_micro_circulation != 100:
+        scale_factor = 100 / total_micro_circulation
+        arterioles_contribution *= scale_factor
+        venules_contribution *= scale_factor
+        capillary_contribution *= scale_factor
+
+    # Split capillary contribution into capillaries and myoglobin
+    capillary_myoglobin_contribution = capillary_contribution * (myoglobin_ratio / 100)
+    capillaries_only_contribution = capillary_contribution * (1 - myoglobin_ratio / 100)
+
+    # Signals from each component
     macrovasc_signal = (macrovasc_contribution / 100) * ((macro_arterial_oxygenation + macro_venous_oxygenation) / 2)
-    myoglobin_signal = (myoglobin_contribution / 100) * myoglobin_oxygenation
     arterioles_signal = (arterioles_contribution / 100) * arterioles_oxygenation
     venules_signal = (venules_contribution / 100) * venules_oxygenation
-    capillaries_contribution = 100 - (myoglobin_contribution + arterioles_contribution + venules_contribution)
-    capillaries_signal = (capillaries_contribution / 100) * venules_oxygenation
+    capillary_signal = (capillaries_only_contribution / 100) * capillaries_oxygenation
+    myoglobin_signal = (capillary_myoglobin_contribution / 100) * myoglobin_oxygenation
 
-    muscle_signal = macrovasc_signal + myoglobin_signal + arterioles_signal + venules_signal + capillaries_signal
+    muscle_signal = macrovasc_signal + arterioles_signal + venules_signal + capillary_signal + myoglobin_signal
 
-    # Adding skin and adipose contributions
+    # Add skin and adipose contributions
     skin_signal = (skin_contribution / 100) * skin_oxygenation_min
     adipose_signal = (adipose_contribution / 100) * adipose_oxygenation
 
@@ -93,38 +119,40 @@ with st.expander("Macrovasculature"):
     macrovasc_contribution = st.slider(
         "Macrovasculature signal Contribution (%):",
         0, 40, 0, step=1,
-        help="Contribution from arteries (100%) and veins (70% at rest, 25% at end of occlusion)."
+        help="Contribution from arteries (98%) and veins (60% at rest, 25% at end of occlusion)."
     )
 
 # Section: Muscle Layer
 with st.expander("Muscle Layer"):
-    myoglobin_min_contribution = st.slider(
-        "Myoglobin signal Contribution at end of occlusion (%), oxygenation set at 0%:",
-        10, 80, 80, step=1,
-        help="Oxygenation assumed 0% at end of occlusion."
-    )
-    myoglobin_max_contribution = st.slider(
-        "Myoglobin signal Contribution at rest (%), oxygenation set at 100%:",
-        10, 80, 30, step=1,
-        help="Oxygenation assumed 100% at rest."
-    )
     arterioles_contribution = st.slider(
-        "Arterioles signal Contribution (%), oxygenation is set at 95%:",
-        5, 30, 10, step=1,
-        help="Signal contribution from arterioles."
+        "Arterioles Contribution (%), oxygenation is set at 95% at rest and 50% at occlusion:",
+        5, 50, 10, step=1,
+        help="Arterioles contribution as a percentage of microcirculation."
     )
     venules_contribution = st.slider(
-        "Venules signal Contribution (%), oxygenation is set at 70 at rest and end 25%:",
-        5, 70, 10, step=1,
-        help="Signal contribution from venules."
+        "Venules Contribution (%), oxygenation is set at 70% at rest and 5% at occlusion:",
+        5, 50, 10, step=1,
+        help="Venules contribution as a percentage of microcirculation."
+    )
+    capillary_contribution = st.slider(
+        "Capillaries Contribution (%), oxygenation is set at 75% at rest and 10% at occlusion::",
+        5, 50, 80, step=1,
+        help="Capillaries contribution as a percentage of microcirculation."
+    )
+    myoglobin_ratio = st.slider(
+        "Myoglobin Contribution (%), oxygenation is set at 95% at rest and 0% at occlusion::",
+        0, 100, 50, step=1,
+        help="Percentage of capillaries contribution allocated to myoglobin."
     )
 
 # Calculate peak and minimum oxygenation
 peak_oxygenation = calculate_peak_oxygenation(
-    macrovasc_contribution, adipose_contribution, skin_contribution, myoglobin_min_contribution, myoglobin_max_contribution, arterioles_contribution, venules_contribution
+    skin_contribution, adipose_contribution, macrovasc_contribution,
+    arterioles_contribution, venules_contribution, capillary_contribution, myoglobin_ratio
 )
 min_oxygenation = calculate_min_oxygenation(
-    macrovasc_contribution, adipose_contribution, skin_contribution, myoglobin_min_contribution, myoglobin_max_contribution, arterioles_contribution, venules_contribution
+    skin_contribution, adipose_contribution, macrovasc_contribution,
+    arterioles_contribution, venules_contribution, capillary_contribution, myoglobin_ratio
 )
 
 # Adjust the oxygenation values to match the new peak and minimum
