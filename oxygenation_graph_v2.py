@@ -102,7 +102,7 @@ st.title('Oxygenation Range Simulation')
 with st.expander("Skin Layer"):
     skin_contribution = st.slider(
         "Skin Layer Contribution (%), oxygenation is set at 80'%' at rest and 10'%' at end of occlusion:",
-        0, 50, 5, step=1,
+        0, 50, 1, step=1,
         help="Skin contribution as a percentage of total signal."
     )
 
@@ -110,7 +110,7 @@ with st.expander("Skin Layer"):
 with st.expander("Adipose Layer"):
     adipose_contribution = st.slider(
         "Adipose Layer Contribution (%), oxygenation is set at 70'%':",
-        0, 100, 5, step=1,
+        0, 100, 1, step=1,
         help="Adipose tissue contribution as a percentage of total signal."
     )
 
@@ -141,7 +141,7 @@ with st.expander("Muscle Layer"):
     )
     myoglobin_ratio = st.slider(
         "Myoglobin Contribution (%), oxygenation is set at 95% at rest and 0% at occlusion::",
-        0, 100, 50, step=1,
+        0, 100, 70, step=1,
         help="Percentage of capillaries contribution allocated to myoglobin."
     )
 
